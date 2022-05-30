@@ -5,7 +5,6 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');	
 const app = express();
 var serverPort = 8080;
-//const mysqlStore = require('express-mysql-session')(session);
 
 const Sequelize = require('sequelize')
 const db = require('./db.js')
@@ -15,22 +14,6 @@ const cors = require('cors');
 app.use(cors());
 
 
-
-/*
-
-const options ={
-    connectionLimit: 10,
-    password: process.env.DB_PASS,
-    user: process.env.DB_USER,
-    database: process.env.MYSQL_DB,
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    createDatabaseTable: true
-    
-}
-
-*/
-//const  sessionStore = new mysqlStore(options);
 
 app.use(session({
 	secret: 'secret',

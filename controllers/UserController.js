@@ -1,54 +1,72 @@
 const db = require('../models/index');
 //const User = require('../models/userModel');
 var User = require('../models/userModel');
-var jwt = require('../services/jwt');
-//const jwt = require("jsonwebtoken");
+//var jwt = require('../services/jwt');
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 var bcrypt = require('bcrypt-nodejs');
 const session = require('express-session');
 
-
 //db.User;
 
-exports.login = async function(req, res) {
-    let username = req.body.username;
-    let password = req.body.password;
-  if(username && password){
-    const user = await User.findOne({ attributes:["username","userId"], where:{ username: req.body.username } })
-                .then(data => {
-                    console.log(data);
-                    res.json(data);
+exports.login = async function(req, res, next) {
+  let user = User.findOne({
+    where: {
+      username: req.body.username
+    }
+  })
+    .then(user => {
+      if (!user) {
+        return res.status(401).json({
+          message:
+            "Auth failed!! either the account does't exist or you entered a wrong account"
+        });
+      }
+      bcrypt.compare(req.body.password, user.passwordHash, function(err, result){
+        if (err) {
+            throw new Error(err);
+          
+        }
+        if (result) {
+          const token = jwt.sign(
+            {
+              user: user
+            },
+            process.env.JWT_KEY,
+            {
+              expiresIn: "1h"
+            }
+          );
+          // on stocke mon user pour pouvoir savoir quel utilisateur est connecté
+        req.session.user ={user:user.username, id: user.userId}
+          res.status(200).json({
+            message: "Auth granted, welcome!",
+            token: token,
+          });
 
-                req.session.username = username;
-                req.session.loggedIn = true;
-                //req.session.username = req.params.userId;
-                const session = req.session;
-                //req.session.username = id;
 
-                
-            })
-                .catch(err => {
-                res.status(500).json({ message: err.message })
-            })
-            const token = jwt.sign(
-              {username },
-              process.env.TOKEN_KEY,
-              {
-                expiresIn: "2h",
-              }
-            );
-            // save user token
-            user.token = token;
+        }
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
+};
 
-            // return new user
-            res.status(201).json(user);
-}
 
-}
+
 
 exports.register = async function(req, res) {
     
     let user = User.build({ username: req.body.username, passwordHash: req.body.password, email: req.body.email })
+    bcrypt.hash(req.body.password, null, null, (err, hash) => {
+                    if (err)
+                        return res.status(500).send({message: "Saving user error."});
+                    user.passwordHash = hash;
+                });
         await user.save()
         .then(data => {
             console.log(user.toJSON());

@@ -8,7 +8,7 @@ const multer = require("multer");
 const fs = require("fs");
 
 exports.uploadFiles = async function(req,res){
-	var postId = req.params.id;
+	var postId = req.session.user.id;
   try {
     console.log(req.file);
 
@@ -69,38 +69,33 @@ exports.getPost = async function(req,res){
 exports.CreatePost = async function(req,res) {	
 
 	var postId = req.params.id;
-  try {
-    console.log(req.file);
-
-    if (req.file == undefined) {
+ 	console.log(postId)
+   if (req.file == undefined) {
       return res.status(200).send(`You must select a file.`);
     }
 
-    let post = Post.create({
-      userId : 8,
+    let post = Post.build({
+      userId : req.session.user.id,
       message : req.body.message,
       type: req.file.mimetype,
       name: req.file.originalname,
-      imaga: fs.readFileSync(
+      image: fs.readFileSync(
          "./public/uploads/" + req.file.filename
-      ),
-    }).then((post) => {
+      )
+    })
+    await post.save()
+    .then((post) => {
       fs.writeFileSync(
-         "./public/" + post.name,
+         "./public/tmp/" + post.name,
         post.image,
-        res.json(post)
+        res.json(post),
+        //res.send(`File has been uploaded.`)
       );
 
-
-      return res.send(`File has been uploaded.`);
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send(`Error when trying upload images: ${error}`);
-  }
-
-
-
+    })
+   .catch (err => {
+  	res.status(500).json({ message: err.message })
+  })
 
 }
 
