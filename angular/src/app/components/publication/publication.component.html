@@ -1,0 +1,95 @@
+
+
+<button class="btn btn-primary right" (click)="displayPublish()">Publish something !</button>
+
+<button class="btn btn-primary right" (click)="mypublication=!mypublication">Manage your publications </button>
+ <div id="publications" class="container">
+
+
+<div *ngIf="publish==true">
+<form [formGroup]="uploadForm" (ngSubmit)="submit()" class="form-group" >
+  
+  <!-- Select File -->
+  <div > 
+  <input name="image" type="file" (change)="showPreview($event)"/>
+</div>
+  <!-- Image Preview -->
+  <div class="imagePreview" *ngIf="imageURL && imageURL !== ''">
+    <img height="200px" width="200px" [src]="imageURL" [alt]="uploadForm.value.name">
+  </div>
+ 
+    <div>
+		<input type="text" placeholder="Description" id="message" formControlName="message" class="form-control"/>
+  </div>
+
+
+	  <button class="btn btn-primary right" (click)="submit()" type="submit">Submit</button>
+  
+</form>
+
+
+</div>
+<!-- my publications -->
+
+  <div *ngIf="mypublication==true">
+  <div class="mypublication"  *ngFor="let mypub of mypublications">
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+        <th scope="col">Descritpion</th>
+        <th scope="col">Last Update</th>
+        <th scope="col">image</th>
+        <th scope="col">Update</th>
+        <th scope="col">Delete</th>
+      </tr>
+    </thead>
+     <tbody>
+      <tr>
+        <td>{{ mypub.message }}</td>
+        <td>{{ mypub.updatedAt }}</td>
+        <td><img src="http://127.0.0.1:8080/tmp/{{ mypub.name }}"></td>
+        <td><button class="btn btn-primary right"  (click)="up=!up" type="submit">Update</button>
+      </td>
+        <td><button class="btn btn-primary right"  (click)="deletePublication(mypub.id)" type="submit">Delete</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+   
+      <div *ngIf="up==true">
+      <form [formGroup]="updateForm" (ngSubmit)="update(mypub)" class="form-group" >
+ 
+    <div>
+    <input type="text" placeholder="Description" id="message" formControlName="message" class="form-control"/>
+  </div>
+
+
+    <button class="btn btn-primary right" (click)="update(mypub)" type="submit">Save</button>
+  
+</form>
+  </div>
+
+</div>
+	       <br>   </div>
+	</div>
+	 <h1> Latest Publications : </h1>
+<br>
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Search..."
+      [(ngModel)]="filterTerm"
+    />
+    <div class="item-publication" *ngFor="let publication of publications | filter:filterTerm">
+
+		<h4>Publication : </h4> <div>{{publication.message}}</div>
+           <img src="http://127.0.0.1:8080/tmp/{{publication.name}}" height="200" width="200" class="img-thumnail">
+           <div>published : {{publication.createdAt}}</div>
+           <div>by user : {{publication.user.username}}</div>
+
+           <div>email-adress : {{publication.user.email}}</div>
+           	<div>member since : {{publication.user.createdAt}}</div>
+            
+</div>
+
+

@@ -11,9 +11,6 @@ const Post = db.define('post', {
     },
     userId: { type: Sequelize.INTEGER, allowNull: false },
     message: { type: Sequelize.STRING, allowNull: true },
-    type: {
-      type: Sequelize.STRING,
-    },
     name: {
       type: Sequelize.STRING,
     },

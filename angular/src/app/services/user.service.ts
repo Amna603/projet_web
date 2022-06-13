@@ -1,52 +1,60 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {GLOBAL} from './global';
 import {User} from '../models/user';
+import { map } from 'rxjs/operators';
+import {BehaviorSubject} from 'rxjs';
 
-@Injectable({
-  providedIn: 'root'
-})
+const baseUrl = 'http://127.0.0.1:8080/';
+
+
+@Injectable()
 
 export class UserService {
       public url: string;
-      public identity;
+      public CurrentUser;
       public token;
+      
 
-
-  constructor(public _http: HttpClient) {
-  this.url = GLOBAL.url;
+      private currentUserSubject = new BehaviorSubject<any>(null);
+  constructor(public http: HttpClient) {
+  this.url = baseUrl;
    }
 
 
-  register(user: User): Observable<any> {
+  register(user): Observable<any> {
       let params = JSON.stringify(user);
       let headers = new HttpHeaders().set('Content-Type', 'application/json');
 
-      return this._http.post(this.url + 'register', params, {headers: headers});
+      return this.http.post(this.url + 'register', params, {headers: headers});
   }
 
-  signup(user, gettoken = null): Observable<any> {
-        if (gettoken != null) {
-            user.gettoken = gettoken;
-        }
+    login(username, password) {
+    console.log(username)
+    let headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.post<any>(baseUrl+'login', { username, password}, {headers:headers})
+            .pipe(map(user => {
+                // login successful if there's a jwt token in the response
+                if (user && user.token) {
+                    // store user details and jwt token in local storage to keep user logged in between page refreshes
+                    localStorage.setItem('CurrentUser', JSON.stringify(user));
+                    this.currentUserSubject.next(user);
+                }
 
-        let params = JSON.stringify(user);
-        let headers = new HttpHeaders().set('Content-Type', 'application/json');
-
-        return this._http.post(this.url + 'login', params, {headers: headers});
+                return user;
+            }));
+            
     }
 
-    getIdentity() {
-        let identity = JSON.parse(localStorage.getItem('identity'));
-
-        if (identity != "undefined") {
-            this.identity = identity;
+    getCurrentUser() {
+        let CurrentUser = JSON.parse(localStorage.getItem('CurrentUser') || '{}');
+        if (CurrentUser.username != null) {
+            this.CurrentUser = CurrentUser;
         } else {
-            this.identity = null;
+            this.CurrentUser = null;
         }
 
-        return this.identity;
+        return this.CurrentUser;
     }
 
     getToken() {
@@ -62,29 +70,32 @@ export class UserService {
     }
 
 
-    updateUser(user: User): Observable<any> {
-        let params = JSON.stringify(user);
-        let headers = new HttpHeaders()
-            .set('Content-Type', 'application/json')
-            .set('Authorization', this.getToken());
+    userUpdate(userId,email,username): Observable<any> {
+        let params = {userId,email,username}
+        console.log(params);
 
-        return this._http.put(this.url + 'update-user/' + user.userId, params, {headers: headers});
+
+        return this.http.put(this.url + 'users' + userId, params);
     }
 
-    getUsers(page = null): Observable<any> {
-        let headers = new HttpHeaders()
-            .set('Content-Type', 'application/json')
-            .set('Authorization', this.getToken());
-
-        return this._http.get(this.url + 'users/' + page, {headers: headers});
+    getAll() {
+        return this.http.get<User[]>(`/users`);
     }
 
-    getUser(userId): Observable<any> {
+    getUser(userId){
         let headers = new HttpHeaders()
             .set('Content-Type', 'application/json')
-            .set('Authorization', this.getToken());
+            //.set('Authorization', this.getToken());
 
-        return this._http.get(this.url + 'user/' + userId, {headers: headers});
+        return this.http.get(baseUrl + 'users' + userId);
     }
-
+    logout() {
+        // remove user from local storage to log user out
+        localStorage.removeItem('CurrentUser');
+        this.currentUserSubject.next(null);
+    }
+    
+    delete(userId) {
+        return this.http.delete(baseUrl+'users'+ userId);
+    }
 }

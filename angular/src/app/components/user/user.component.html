@@ -1,0 +1,28 @@
+  <!--<div *ngIf="mypublication==true">-->
+  <div class="user"> 
+    <h4> Profil </h4>
+    <div>Username : {{CurrentUser.username}} </div>
+    <div>Email-adress : {{CurrentUser.email}}</div>
+    <div>Member since : {{CurrentUser.createdAt}}</div>
+    <div>Last updated profil : {{CurrentUser.updatedAt}}</div>
+    <button class="btn btn-primary right" (click)="up=!up">Update your profil</button>
+    <button class="btn btn-primary right" (click)="deleteUser()">Delete your account</button>
+     <div *ngIf="up==true">
+
+      <form [formGroup]="updateForm" (ngSubmit)="updateUser(user)" class="form-group" >
+  
+ 
+    <div>
+    <input type="text" placeholder="email" id="email" formControlName="email" class="form-control"/>
+  </div>
+      <div>
+    <input type="text" placeholder="username" id="username" formControlName="username" class="form-control"/>
+  </div>
+
+
+    <button class="btn btn-primary right" (click)="updateUser(user)" type="submit">Save</button>
+  
+</form>
+</div>
+
+</div>

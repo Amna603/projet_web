@@ -42,11 +42,17 @@ exports.login = async function(req, res, next) {
           res.status(200).json({
             message: "Auth granted, welcome!",
             token: token,
+            userId:user.userId,
+            username : user.username,
+            email : user.email,
+            createdAt : user.createdAt,
+            updatedAt : user.updatedAt
           });
 
 
         }
       });
+      console.log(req.session);
     })
     .catch(err => {
       console.log(err);
@@ -57,7 +63,32 @@ exports.login = async function(req, res, next) {
 };
 
 
+exports.getUsers = async function(req,res){
+    await User.findAll()
+    .then(data=> {
+        console.log("All of posts : " , JSON.stringify(data,null, 2));
+        res.json(data);
+    })
+    .catch(err => {
+        res.status(500).json({ message: err.message})
+    })
 
+}
+exports.getUserId = async function(req,res) {
+    if(req.params.userId)
+    {
+        await User.findOne({ where : {userId:req.params.userId}})
+        .then(data => {
+            res.json(data);
+        })
+        .catch(err => {
+            res.status(500).json({message: err.message})
+        })
+    }
+    else res.status(400).json({message: 'No user'})
+    
+
+}
 
 exports.register = async function(req, res) {
     
@@ -82,8 +113,8 @@ exports.register = async function(req, res) {
                 });
 }
 exports.userDelete = async function(req,res){
-    if(req.params.id){
-        await User.destroy({where: {userId : req.params.id}})
+    if(req.params.userId){
+        await User.destroy({where: {userId : req.params.userId}})
         .then(data => {
             res.json(data);
             console.log(data);
@@ -98,10 +129,10 @@ exports.userDelete = async function(req,res){
 
 
 exports.userUpdate = async function (req, res) {
-    if (req.params.userId > 0) {
+    if (req.params.userId) {
         await User.update(
-            { username: req.body.username, email: req.body.email, passwordHash: req.body.password  },
-            { where: { user_id: req.params.userId } }
+            { email: req.body.email, username: req.body.username },
+            { where: { userId: req.params.userId } }
         )
             .then(data => {
                 res.json(data);

@@ -5,6 +5,9 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');	
 const app = express();
 var serverPort = 8080;
+var bodyParser = require('body-parser')
+app.use(express.static('public/tmp'));
+app.use(express.static('public'));
 
 const Sequelize = require('sequelize')
 const db = require('./db.js')
@@ -13,7 +16,8 @@ const db = require('./db.js')
 const cors = require('cors');
 app.use(cors());
 
-
+const path = require("path");  
+app.use("/tmp", express.static("tmp"));  
 
 app.use(session({
 	secret: 'secret',
@@ -22,14 +26,20 @@ app.use(session({
 	//store: sessionStore
 }));
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 let cookieParser = require('cookie-parser');
 app.use(cookieParser());
-
-
+/*
+app.use(function(req, res, next) {
+   res.header("Access-Control-Allow-Origin", "*");
+   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+ }); //cors problems
+*/
 //db.sync({force: true})
 
 
